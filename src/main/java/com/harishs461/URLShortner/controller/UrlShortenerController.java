@@ -1,11 +1,9 @@
 package com.harishs461.URLShortner.controller;
 
-import com.harishs461.URLShortner.model.UrlShortenerRequest;
+import com.harishs461.URLShortner.model.UrlMappingRequest;
 import com.harishs461.URLShortner.service.UrlShortenerService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class UrlShortenerController {
@@ -14,9 +12,12 @@ public class UrlShortenerController {
     private UrlShortenerService urlShortenerService;
 
     @PostMapping("/create")
-    public String shortenUrl(@RequestBody UrlShortenerRequest urlShortenerRequest) {
-
-        return urlShortenerService.longToShort(urlShortenerRequest.getLongUrl());
+    public String shortenUrl(@RequestBody UrlMappingRequest urlMappingRequest) {
+        return urlShortenerService.longToShort(urlMappingRequest.getLongUrl());
     }
 
+    @GetMapping("/fetchLongUrl")
+    public String fetchLongUrl(@RequestBody UrlMappingRequest urlMappingRequest) {
+        return urlShortenerService.shortToLong(urlMappingRequest.getShortUrl());
+    }
 }

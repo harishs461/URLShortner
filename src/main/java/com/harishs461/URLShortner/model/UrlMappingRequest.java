@@ -1,15 +1,14 @@
 package com.harishs461.URLShortner.model;
 
-
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@AllArgsConstructor
+@Data
 @NoArgsConstructor
-@Getter
-public class UrlShortenerRequest {
+@AllArgsConstructor
+public class UrlMappingRequest {
 
     private String longUrl;
+    private String shortUrl;
 }
