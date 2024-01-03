@@ -1,5 +1,7 @@
 package com.harishs461.URLShortner.service;
 
+import com.harishs461.URLShortner.exception.MalformedUrlException;
+import com.harishs461.URLShortner.exception.ResourceNotFoundException;
 import com.harishs461.URLShortner.model.UrlMapping;
 import com.harishs461.URLShortner.repository.UrlShortenerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,7 @@ public class UrlShortenerService {
         elements = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         this.urlShortenerRepository = urlShortenerRepository;
     }
-    public String longToShort(String longUrl) {
+    public String longToShort(String longUrl) throws MalformedUrlException {
 
         UrlMapping urlMappingInDb = urlShortenerRepository.findByLongUrl(longUrl);
         if(null != urlMappingInDb) {
@@ -32,16 +34,15 @@ public class UrlShortenerService {
         String counterInBase62 = convertBase10ToBase62(counter);
         String shortUrl;
 
-        try {
+        try{
             URL url  = new URL(longUrl);
             shortUrl = url.getProtocol() + "://" + url.getHost() +
                     (url.getPort() != -1 ? ":" + url.getPort() : "") + "/" +
                     counterInBase62 +
                     (url.getQuery() != null ? "?" + url.getQuery() : "") +
                     (url.getRef() != null ? "#" + url.getRef() : "");
-        }catch(MalformedURLException malformedURLException) {
-            malformedURLException.printStackTrace();
-            return longUrl;
+        }catch (MalformedURLException malformedURLException) {
+            throw new MalformedUrlException(malformedURLException.getMessage());
         }
 
         UrlMapping urlMapping = UrlMapping.builder()
@@ -57,25 +58,26 @@ public class UrlShortenerService {
 
         Long id = extractIdFromShortUrl(shortUrl);
         String longUrl;
-        if (id == null) return "No long url mapping found for the provided short url.";
+        if (id == null) throw new ResourceNotFoundException("No long url mapping found for the provided short url.");
         else {
             Optional<UrlMapping> urlMapping = urlShortenerRepository.findById(id);
-            longUrl = urlMapping.map(UrlMapping::getLongUrl).orElse("No long url mapping found for the provided short url.");
+            longUrl = urlMapping.map(UrlMapping::getLongUrl).orElse(null);
+            if(null == longUrl)
+                throw new ResourceNotFoundException("No long url mapping found for the provided short url.");
         }
 
         return longUrl;
     }
 
-    private Long extractIdFromShortUrl(String shortUrl) {
-        Long id = null;
+    private Long extractIdFromShortUrl(String shortUrl) throws MalformedUrlException{
+        long id;
         try {
             URL url  = new URL(shortUrl);
             System.out.println(url.getPath());
             String sUrl = url.getPath().replaceFirst("/","");
             id = convertBase62ToBase10(sUrl);
         }catch(MalformedURLException malformedURLException) {
-            malformedURLException.printStackTrace();
-            //return longUrl;
+           throw new MalformedUrlException(malformedURLException.getMessage());
         }
 
         return id;
